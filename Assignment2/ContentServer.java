@@ -52,6 +52,8 @@ public class ContentServer {
 //          Establishing the connection using Sockets
 //          Declaring the portNumber  and the hostname to establish the connection with the AggregationServer
                 Socket socket = new Socket(hostName, portNumber);
+//          Initiating the Content Server for Communication.
+                System.out.println("Content Server Started");
 //          Sending the data via the Sockets enabling the autoflush as true,verifies that the data is sent immediately to the Server.
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 //          Creating an object for BufferedReader to read the input text data from socket connection.
