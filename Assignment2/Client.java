@@ -24,6 +24,7 @@ public class Client {
 //          Establishing the connection using Sockets.
 //          Declaring the portNumber  and the hostname to establish the connection with the AggregationServer.
             Socket socket = new Socket(serverAddress.split(":")[0], Integer.parseInt(serverAddress.split(":")[1]));
+            System.out.println("Client Connected");
 //          Creating an object for BufferedReader to read the input text data from socket connection.
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 //          Sending the data via the Sockets enabling the autoflush as true,verifies that the data is sent immediately to the Server.
