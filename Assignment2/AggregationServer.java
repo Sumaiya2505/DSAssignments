@@ -13,7 +13,7 @@ public class AggregationServer {
         private static LamportClock lamportClock;
 //      Declaring the time limit that is thirty seconds ,after thirty seconds the AgrregationServer would remove the old Data.
         private static final int TIME_LIMIT = 30000;
-//      Decalring the port NUmber to establish the connection.
+//      Declaring the port NUmber to establish the connection.
         private static final int PORT_NUMBER = 4040;
 //      HashMap to store the values sent by the contentserver.
         private static Map<String, Long> contentServerValue;
@@ -31,6 +31,7 @@ public class AggregationServer {
             lamportClock = new LamportClock();
 //      Starting  the server socket to establish the connection
             ServerSocket serverSocket = new ServerSocket(port);
+//      Initiating the content server for communication.
             System.out.println("Aggregation server started on port number " + port);
 //      Establishing the connection with the client.
             while (true) {
