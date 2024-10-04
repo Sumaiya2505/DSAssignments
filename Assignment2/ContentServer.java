@@ -13,13 +13,14 @@ public class ContentServer {
     public static void main(String[] args)
     {
 //            To run the file on the specified port number use this format.
-            if (args.length < 2) {
+            if (args.length < 3) {
                 System.out.println("java ContentServer portNumber locationOfWeather-sample-data.txt");
                 return;
             }
 //          Assigning the port number and location of the Weather-sample-data file.
             String serverPort = args[0];
             String weatherDataFileLocation = args[1];
+            String contentServerIdNumber = args[2];
 //USing try-catch block to handle the exceptions.
             try {
 //                Creating an instance of the JSONObject for parsing the text and constructing JSON
@@ -40,7 +41,7 @@ public class ContentServer {
 //                If the serverAddress contains a colon, split host and port
                 if (serverPort.contains(":"))
                 {
-//              Segreagating and decalring the portNumber and hostName
+//              Segregating and decalring the portNumber and hostName
                     String[] address = serverPort.split(":");
                     hostName = address[0];
                     portNumber = Integer.parseInt(address[1]);
@@ -53,7 +54,7 @@ public class ContentServer {
 //          Declaring the portNumber  and the hostname to establish the connection with the AggregationServer
                 Socket socket = new Socket(hostName, portNumber);
 //          Initiating the Content Server for Communication.
-                System.out.println("Content Server Started");
+                System.out.println("Content Server Started" + contentServerIdNumber );
 //          Sending the data via the Sockets enabling the autoflush as true,verifies that the data is sent immediately to the Server.
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 //          Creating an object for BufferedReader to read the input text data from socket connection.
@@ -70,6 +71,7 @@ public class ContentServer {
                 out.println("Content-Length: " + json.length());
 //          Lamport Clock timestamp.
                 out.println("Lamport-Clock: " + lamportClock.getTime());
+                out.println("Content-Server-ID: " + contentServerIdNumber);
                 out.println();
 //          Sending the JSON body.
                 out.println(json);
