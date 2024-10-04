@@ -147,11 +147,14 @@ public class AggregationServer {
                 int clientClockTime = 0;
 //              Reading the content length and body
                 int contentLength = 0;
+                String contentServerId = "";
                 for (String line : requestLines) {
                     if (line.startsWith("Content-Length:")) {
                         contentLength = Integer.parseInt(line.split(":")[1].trim());
                     } else if (line.startsWith("Lamport-Clock:")) {
                         clientClockTime = Integer.parseInt(line.split(":")[1].trim());
+                    } else if (line.startsWith("Content-Server-ID:")) {
+                        contentServerId = line.split(":")[1].trim();
                     }
                 }
 
@@ -161,7 +164,7 @@ public class AggregationServer {
 
                 try {
                     JSONObject newData = new JSONObject(jsonData);
-                    String contentServerId = newData.getString("id");
+//                    String contentServerId = newData.getString("id");
                     updateData(newData, contentServerId, clientClockTime);
                     out.println("HTTP/1.1 200 OK");
                     out.println("Lamport-Clock: " + lamportClock.getTime());
