@@ -1,17 +1,23 @@
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AggregationServer {
 
-    private static LamportClock lamportClock;
-    private static final int TIME_LIMIT = 3000;
+    public static LamportClock lamportClock;
+    public static final int TIME_LIMIT = 3000;
     private static final int PORT_NUMBER = 4040;
-    private static Map<String, Long> contentServerValue;
-    private static JSONArray weatherData;
+    public static Map<String, Long> contentServerValue;
+    public static JSONArray weatherData;
 
     public static void main(String[] args) throws IOException {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : PORT_NUMBER;
@@ -26,7 +32,7 @@ public class AggregationServer {
         }
     }
 
-    private static synchronized JSONArray getData() {
+    public static synchronized JSONArray getData() {
         lamportClock.increaseTime();
         long currentTime = System.currentTimeMillis();
         for (int i = 0; i < weatherData.length(); i++) {
@@ -40,7 +46,7 @@ public class AggregationServer {
         return weatherData;
     }
 
-    private static synchronized JSONObject getById(String id) {
+    public static synchronized JSONObject getById(String id) {
         for (int i = 0; i < weatherData.length(); i++) {
             JSONObject object = weatherData.getJSONObject(i);
             if (object.getString("id").equals(id)) {
@@ -50,7 +56,7 @@ public class AggregationServer {
         return null; // Return null if the ID is not found
     }
 
-    private static class HandlingClient extends Thread {
+    public static class HandlingClient extends Thread {
         private Socket socket;
 
         public HandlingClient(Socket socket) {
@@ -109,7 +115,7 @@ public class AggregationServer {
             }
         }
 
-        private static void handlePutRequest(BufferedReader in, PrintWriter out, String[] requestLines) throws IOException {
+        public static void handlePutRequest(BufferedReader in, PrintWriter out, String[] requestLines) throws IOException {
             int clientClockTime = 0;
             int contentLength = 0;
             String contentServerId = "";
