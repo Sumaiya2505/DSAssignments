@@ -3,15 +3,33 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class Paxos {
+/**
+ * This class implements the Paxos consensus algorithm.
+ * This is the main class which class the councillor class and proposer class
+ */
+public class Paxos
+{
+    /**
+     * The total number of councillors participating in the Paxos protocol
+     */
     public static final int TOTAL_COUNCILLORS = 9;
+
+    /**
+     * The majority of the councilllors required to win the election.
+     */
     public static final int MAJORITY = TOTAL_COUNCILLORS / 2 + 1;
 
-    public static void main(String[] args) {
+    /**
+     * The main method to implement the Paxos protocol.
+     */
+    public static void main(String[] args)
+    {
         ExecutorService executor = Executors.newFixedThreadPool(TOTAL_COUNCILLORS);
         List<Councillor> councillors = new ArrayList<>();
 
-        // Initialize councillors
+        /**
+         * Initializing the number of councillors.
+         */
         for (int i = 1; i <= TOTAL_COUNCILLORS; i++) {
             int id = i;
             Councillor councillor = new Councillor("M" + id, 5000 + id);
@@ -19,26 +37,39 @@ public class Paxos {
             executor.execute(() -> councillor.start());
         }
 
-//        // Simulate a proposer initiating voting
 //        Proposer proposer1 = new Proposer("M1", councillors);
 //        proposer1.initiateVoting("M1 for President");
-
-        // Simulate another proposer
 //        Proposer proposer2 = new Proposer("M8", councillors);
 //        proposer2.initiateVoting("M8 for President");
 
-        // Simulate two proposers initiating voting simultaneously
+        /**
+         * Simulating two proposers initating vote simultaneously.
+         */
          Proposer proposer1 = new Proposer("M1", councillors);
          Proposer proposer2 = new Proposer("M8", councillors);
-         proposer1.initiateVoting("M1 for President");
-         proposer2.initiateVoting("M8 for President");
+        new Thread(() -> proposer1.initiateVoting("M1 for President"));
+        new Thread(() -> proposer2.initiateVoting("M8 for President"));
 
+        Thread thread1 = new Thread(() -> proposer1.initiateVoting("M1 for President"));
+        Thread thread2 = new Thread(() -> proposer2.initiateVoting("M8 for President"));
+        thread1.start();
 
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        thread2.start();
         executor.shutdown();
     }
 }
 
-class Councillor implements Runnable {
+/**
+ * This class represents a Councillor in the Paxos protocol.
+ * Each Councillor listens for messages and participates in the protocol phases.
+ */
+class Councillor implements Runnable
+{
     public final String name;
     public final int port;
     private ServerSocket serverSocket;
@@ -52,6 +83,9 @@ class Councillor implements Runnable {
         this.port = port;
     }
 
+    /**
+     * Establishes the communication via sockets.
+     */
     public void start() {
         try {
             serverSocket = new ServerSocket(port);
@@ -65,10 +99,15 @@ class Councillor implements Runnable {
         }
     }
 
+    /**
+     * Handles incoming requests from proposers.
+     *
+     * @param socket Socket for the incoming connection.
+     */
     private void handleRequest(Socket socket) {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-            // Simulate behavior-specific delays and connectivity
+//            Simulate behaviour specific delays and connectivity.
             simulateBehavior();
 
             if (!isConnected) {
@@ -76,7 +115,6 @@ class Councillor implements Runnable {
                 System.out.println(name + " is offline.");
                 return;
             }
-
             String message = in.readLine();
             synchronized (this) { // Ensure thread-safe access
                 if (message.startsWith("PREPARE")) {
@@ -106,13 +144,14 @@ class Councillor implements Runnable {
         }
     }
 
+    /**
+     * Simulates specific behavior for councillors based on their name.
+     */
     private void simulateBehavior() {
         switch (name) {
-            case "M1":
-                // Always responsive, no delay
+            case "M1":// Always responsive, no delay
                 break;
-            case "M2":
-                // Delayed responses unless in connected state
+            case "M2":// Delayed responses unless in connected state
                 isConnected = random.nextBoolean(); // Randomly decide connectivity
                 if (isConnected) {
                     sleep(200); // Small delay
@@ -120,12 +159,10 @@ class Councillor implements Runnable {
                     sleep(2000); // Large delay or timeout
                 }
                 break;
-            case "M3":
-                // Occasionally goes offline
+            case "M3":// Occasionally goes offline
                 isConnected = random.nextInt(10) > 2; // 80% chance of being online
                 break;
-            default:
-                // Randomized delays for M4-M9
+            default:// Randomized delays for M4-M9
                 sleep(random.nextInt(500) + 100); // Random delay between 100ms and 600ms
                 break;
         }
@@ -145,15 +182,28 @@ class Councillor implements Runnable {
     }
 }
 
-class Proposer {
+/**
+ * This class represents a Proposer in the Paxos protocol.
+ * Proposers initiate voting with a proposal and coordinate with councillors.
+ */
+class Proposer
+{
     private final String name;
     private final List<Councillor> councillors;
     private final int majority = Paxos.MAJORITY;
 
-    public Proposer(String name, List<Councillor> councillors) {
+    /**
+     * Creates a Proposer with the specified name and councillors.
+     *
+     * @param name        Name of the proposer.
+     * @param councillors List of councillors to communicate with.
+     */
+    public Proposer(String name, List<Councillor> councillors)
+    {
         this.name = name;
         this.councillors = councillors;
     }
+
 
     private String sendMessage(Councillor councillor, String message) {
         try (Socket socket = new Socket("localhost", councillor.port);
@@ -168,10 +218,16 @@ class Proposer {
         }
     }
 
-    public void initiateVoting(String proposal) {
+    /**
+     * Initiates the Paxos voting process for a given proposal.
+     *
+     * @param proposal The proposal to be voted on.
+     */
+    public void initiateVoting(String proposal)
+    {
         System.out.println(name + " initiating voting with proposal: " + proposal);
 
-        // Phase 1: Prepare
+//        Phase 1: Prepare
         List<Councillor> promises = new ArrayList<>();
         for (Councillor councillor : councillors) {
             String response = sendMessage(councillor, "PREPARE " + proposal);
@@ -181,7 +237,7 @@ class Proposer {
         }
 
         if (promises.size() >= majority) {
-            // Phase 2: Accept
+//            Phase 2: Accept
             List<Councillor> acceptances = new ArrayList<>();
             for (Councillor councillor : promises) {
                 String response = sendMessage(councillor, "ACCEPT " + proposal);
@@ -191,7 +247,7 @@ class Proposer {
             }
 
             if (acceptances.size() >= majority) {
-                // Phase 3: Decide
+//                 Phase 3: Decide
                 for (Councillor councillor : acceptances) {
                     sendMessage(councillor, "DECIDE " + proposal);
                 }
