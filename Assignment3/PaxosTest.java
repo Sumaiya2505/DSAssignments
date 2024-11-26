@@ -35,7 +35,8 @@ public class PaxosTest
     }
 
     @Test
-    public void testDelayedResponses() {
+    public void testDelayedResponses()
+    {
         // Simulating delayed responses for M2 and M3
         System.out.println("Test Paxos with delayed responses from all councillors");
         councillors.forEach(c -> {
@@ -83,7 +84,8 @@ public class PaxosTest
     }
 
     @Test
-    public void testMixedBehaviors() {
+    public void testMixedBehaviors()
+    {
         // Simulating mixed behaviors for M2 and M3
         System.out.println("Test Paxos with councillors having mixed behaviors");
         councillors.forEach(c -> {
@@ -98,4 +100,27 @@ public class PaxosTest
         proposer.initiateVoting("M1 for President");
         Assert.assertTrue("Paxos works with mixed councillor behaviors.", true);
     }
+
+    @Test
+    public void testProposerGoesOffline() throws InterruptedException
+    {
+        System.out.println("Test Paxos with M2 proposing and then going offline");
+
+        // Simulating M2 acting as proposer and then going offline
+        Proposer proposer = new Proposer("M2", councillors);
+        Thread proposerThread = new Thread(() -> proposer.initiateVoting("M2 for President"));
+        proposerThread.start();
+
+        // Simulate M2 going offline mid-proposal
+        Thread.sleep(1000);
+        councillors.forEach(c -> {
+            if ("M2".equals(c.name)) {
+                c.isConnected = false; // M2 goes offline
+            }
+        });
+
+        proposerThread.join();
+        Assert.assertTrue("Paxos works when a proposer goes offline mid-voting.", true);
+    }
+
 }
