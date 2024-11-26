@@ -5,31 +5,29 @@ import java.util.concurrent.*;
 
 /**
  * This class implements the Paxos consensus algorithm.
- * This is the main class which class the councillor class and proposer class
+ * Paxos is a distributed consensus protocol used to agree on a single value among distributed systems.
  */
-public class Paxos
-{
+public class Paxos {
     /**
-     * The total number of councillors participating in the Paxos protocol
+     * The total number of councillors participating in the Paxos protocol.
+     * This is the quorum size for the system.
      */
     public static final int TOTAL_COUNCILLORS = 9;
 
     /**
-     * The majority of the councilllors required to win the election.
+     * The majority of councillors required to reach consensus.
+     * Majority is calculated as (TOTAL_COUNCILLORS / 2) + 1.
      */
     public static final int MAJORITY = TOTAL_COUNCILLORS / 2 + 1;
 
     /**
-     * The main method to implement the Paxos protocol.
+     * The main method to initialize councillors and simulate the Paxos protocol.
      */
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         ExecutorService executor = Executors.newFixedThreadPool(TOTAL_COUNCILLORS);
         List<Councillor> councillors = new ArrayList<>();
 
-        /**
-         * Initializing the number of councillors.
-         */
+//        Initializing the councillors with unique names and ports
         for (int i = 1; i <= TOTAL_COUNCILLORS; i++) {
             int id = i;
             Councillor councillor = new Councillor("M" + id, 5000 + id);
@@ -37,54 +35,59 @@ public class Paxos
             executor.execute(() -> councillor.start());
         }
 
-//        Proposer proposer1 = new Proposer("M1", councillors);
-//        proposer1.initiateVoting("M1 for President");
-//        Proposer proposer2 = new Proposer("M8", councillors);
-//        proposer2.initiateVoting("M8 for President");
-
-        /**
-         * Simulating two proposers initating vote simultaneously.
-         */
-         Proposer proposer1 = new Proposer("M1", councillors);
-         Proposer proposer2 = new Proposer("M8", councillors);
-        new Thread(() -> proposer1.initiateVoting("M1 for President"));
-        new Thread(() -> proposer2.initiateVoting("M8 for President"));
+//         Simulate two proposers initiating voting simultaneously
+        Proposer proposer1 = new Proposer("M1", councillors);
+        Proposer proposer2 = new Proposer("M8", councillors);
 
         Thread thread1 = new Thread(() -> proposer1.initiateVoting("M1 for President"));
         Thread thread2 = new Thread(() -> proposer2.initiateVoting("M8 for President"));
-        thread1.start();
 
+//         Start  the proposer threads with a delay to simulate simultaneous proposals
+        thread1.start();
         try {
+//            Delay to simulate overlapping proposals
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         thread2.start();
+//        Shutdown the executor to gracefully terminate the councillors
         executor.shutdown();
     }
 }
 
 /**
- * This class represents a Councillor in the Paxos protocol.
- * Each Councillor listens for messages and participates in the protocol phases.
+ * Represents a councillor participating in the Paxos protocol.
+ * Each councillor listens for messages from proposers and participates in the three phases:
+ * 1. Prepare phase: Responds with a promise if no other proposal has been accepted.
+ * 2. Accept phase: Accepts the proposal if it matches the promised one.
+ * 3. Decide phase: Commits to the proposal and concludes consensus.
  */
-class Councillor implements Runnable
-{
+class Councillor implements Runnable {
+//     Unique identifier for the councillor
     public final String name;
+//     Port number for communication
     public final int port;
+//     Socket for listening to requests
     private ServerSocket serverSocket;
+//     Proposal already accepted
     private String acceptedProposal = null;
+//     Proposal being evaluated
     private String currentProposal = null;
+//    For simulating delays and connectivity
     private final Random random = new Random();
-    public boolean isConnected = true; // Simulates M2/M3 connectivity state
+//    Simulates the councillor's connectivity state
+    public boolean isConnected = true;
 
-    public Councillor(String name, int port) {
+    public Councillor(String name, int port)
+    {
         this.name = name;
         this.port = port;
     }
 
     /**
-     * Establishes the communication via sockets.
+     * Starts the councillor by opening a server socket and waiting for connections.
+     * Each connection is handled in a separate thread.
      */
     public void start() {
         try {
@@ -100,40 +103,58 @@ class Councillor implements Runnable
     }
 
     /**
-     * Handles incoming requests from proposers.
+     * Handles incoming requests from the proposers.
+     * Processes messages for each phase of the Paxos protocol.
      *
-     * @param socket Socket for the incoming connection.
+     * @param socket The socket connected to the proposer.
      */
     private void handleRequest(Socket socket) {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-//            Simulate behaviour specific delays and connectivity.
+
+//             Simulate councillor-specific behavior (e.g., delays, offline state)
             simulateBehavior();
 
-            if (!isConnected) {
-                // Drop the connection
+            if (!isConnected)
+            {
+//                If the councillor is offline, drop the connection
                 System.out.println(name + " is offline.");
                 return;
             }
+//          Read the incoming message
             String message = in.readLine();
-            synchronized (this) { // Ensure thread-safe access
-                if (message.startsWith("PREPARE")) {
+            synchronized (this)
+            { // Ensure thread-safe access to state variables
+                if (message.startsWith("PREPARE"))
+                {
+                    // Handle Prepare phase: Respond with a promise
                     String proposal = message.split(" ")[1];
-                    if (acceptedProposal == null) {
+                    if (acceptedProposal == null)
+                    {
                         currentProposal = proposal;
                         out.println("PROMISE " + proposal);
-                    } else {
+                    }
+                    else
+                    {
                         out.println("PROMISE " + acceptedProposal);
                     }
-                } else if (message.startsWith("ACCEPT")) {
+                }
+                else if (message.startsWith("ACCEPT"))
+                {
+                    // Handle Accept phase: Accept the proposal if it matches the promise
                     String proposal = message.split(" ")[1];
-                    if (proposal.equals(currentProposal)) {
+                    if (proposal.equals(currentProposal))
+                    {
                         acceptedProposal = proposal;
                         out.println("ACCEPTED " + proposal);
-                    } else {
+                    }
+                    else
+                    {
                         out.println("REJECTED " + proposal);
                     }
-                } else if (message.startsWith("DECIDE")) {
+                } else if (message.startsWith("DECIDE"))
+                {
+                    // Handle Decide phase: Commit to the proposal
                     String proposal = message.split(" ")[1];
                     acceptedProposal = proposal;
                     System.out.println(name + " decided on: " + proposal);
@@ -145,29 +166,31 @@ class Councillor implements Runnable
     }
 
     /**
-     * Simulates specific behavior for councillors based on their name.
+     * Simulates councillor-specific behavior such as delays or being offline.
+     * Behavior varies based on the councillor's name.
      */
     private void simulateBehavior() {
         switch (name) {
-            case "M1":// Always responsive, no delay
+            case "M1": // Always responsive, no delay
                 break;
-            case "M2":// Delayed responses unless in connected state
-                isConnected = random.nextBoolean(); // Randomly decide connectivity
-                if (isConnected) {
-                    sleep(200); // Small delay
-                } else {
-                    sleep(2000); // Large delay or timeout
-                }
+            case "M2": // Occasionally offline with delays
+                isConnected = random.nextBoolean();
+                sleep(isConnected ? 200 : 2000);
                 break;
-            case "M3":// Occasionally goes offline
-                isConnected = random.nextInt(10) > 2; // 80% chance of being online
+            case "M3": // Frequently online, occasionally offline
+                isConnected = random.nextInt(10) > 2;
                 break;
-            default:// Randomized delays for M4-M9
-                sleep(random.nextInt(500) + 100); // Random delay between 100ms and 600ms
+            default: // Randomized delays for other councillors
+                sleep(random.nextInt(500) + 100);
                 break;
         }
     }
 
+    /**
+     * Utility method to pause execution for a specified duration.
+     *
+     * @param milliseconds Time in milliseconds to sleep.
+     */
     private void sleep(int milliseconds) {
         try {
             Thread.sleep(milliseconds);
@@ -183,82 +206,78 @@ class Councillor implements Runnable
 }
 
 /**
- * This class represents a Proposer in the Paxos protocol.
- * Proposers initiate voting with a proposal and coordinate with councillors.
+ * Represents a proposer in the Paxos protocol.
+ * A proposer initiates the voting process and coordinates with councillors
+ * to reach consensus on a proposed value.
  */
-class Proposer
-{
-    private final String name;
-    private final List<Councillor> councillors;
-    private final int majority = Paxos.MAJORITY;
+class Proposer {
+    private final String name;               // Unique identifier for the proposer
+    private final List<Councillor> councillors; // List of councillors in the system
+    private final int majority = Paxos.MAJORITY; // Majority threshold
 
-    /**
-     * Creates a Proposer with the specified name and councillors.
-     *
-     * @param name        Name of the proposer.
-     * @param councillors List of councillors to communicate with.
-     */
-    public Proposer(String name, List<Councillor> councillors)
-    {
+    public Proposer(String name, List<Councillor> councillors) {
         this.name = name;
         this.councillors = councillors;
     }
 
-
+    /**
+     * Sends a message to a councillor and returns the response.
+     *
+     * @param councillor The councillor to communicate with.
+     * @param message    The message to send.
+     * @return The response from the councillor.
+     */
     private String sendMessage(Councillor councillor, String message) {
         try (Socket socket = new Socket("localhost", councillor.port);
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             out.println(message);
-            String response = in.readLine();
-            return response != null ? response : "NO_RESPONSE";
+            return in.readLine(); // Read the response
         } catch (IOException e) {
             System.out.println(councillor.name + " is offline.");
-            return "OFFLINE";
+            return null;
         }
     }
 
     /**
      * Initiates the Paxos voting process for a given proposal.
+     * Executes the three phases: Prepare, Accept, and Decide.
      *
-     * @param proposal The proposal to be voted on.
+     * @param proposal The value to be proposed for consensus.
      */
-    public void initiateVoting(String proposal)
-    {
+    public void initiateVoting(String proposal) {
         System.out.println(name + " initiating voting with proposal: " + proposal);
 
-//        Phase 1: Prepare
+        // Phase 1: Prepare
         List<Councillor> promises = new ArrayList<>();
         for (Councillor councillor : councillors) {
             String response = sendMessage(councillor, "PREPARE " + proposal);
-            if (response.startsWith("PROMISE")) {
+            if (response != null && response.startsWith("PROMISE")) {
                 promises.add(councillor);
             }
         }
 
         if (promises.size() >= majority) {
-//            Phase 2: Accept
+            // Phase 2: Accept
             List<Councillor> acceptances = new ArrayList<>();
             for (Councillor councillor : promises) {
                 String response = sendMessage(councillor, "ACCEPT " + proposal);
-                if (response.startsWith("ACCEPTED")) {
+                if (response != null && response.startsWith("ACCEPTED")) {
                     acceptances.add(councillor);
                 }
             }
 
             if (acceptances.size() >= majority) {
-//                 Phase 3: Decide
+                // Phase 3: Decide
                 for (Councillor councillor : acceptances) {
                     sendMessage(councillor, "DECIDE " + proposal);
                 }
                 System.out.println(name + " successfully decided on proposal: " + proposal);
             } else {
-                System.out.println(name + " failed to get majority acceptances.");
+                System.out.println(name + " failed to get majority acceptance for: " + proposal);
             }
         } else {
-            System.out.println(name + " failed to get majority promises.");
+            System.out.println(name + " failed to get majority promises for: " + proposal);
         }
     }
 }
-
-
