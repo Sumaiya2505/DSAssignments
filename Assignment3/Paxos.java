@@ -35,6 +35,11 @@ public class Paxos {
             executor.execute(() -> councillor.start());
         }
 
+
+//         Ensure all councillors are always responsive
+//        councillors.forEach(councillor -> councillor.isConnected = true);
+
+
 //         Simulate two proposers initiating voting simultaneously
         Proposer proposer1 = new Proposer("M1", councillors);
         Proposer proposer2 = new Proposer("M8", councillors);
@@ -51,7 +56,10 @@ public class Paxos {
             throw new RuntimeException(e);
         }
         thread2.start();
+//        proposer1.initiateVoting("M1");
+//        proposer2.initiateVoting("M8");
 //        Shutdown the executor to gracefully terminate the councillors
+
         executor.shutdown();
     }
 }
@@ -184,6 +192,8 @@ class Councillor implements Runnable {
                 sleep(random.nextInt(500) + 100);
                 break;
         }
+//        when all the councillors have immediate response for the proposals.
+//        isConnected= true;
     }
 
     /**
