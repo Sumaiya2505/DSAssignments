@@ -177,24 +177,47 @@ class Councillor implements Runnable {
      * Simulates councillor-specific behavior such as delays or being offline.
      * Behavior varies based on the councillor's name.
      */
-    private void simulateBehavior() {
-        switch (name) {
+    private void simulateBehavior()
+    {
+        switch (name)
+        {
             case "M1": // Always responsive, no delay
                 break;
-            case "M2": // Occasionally offline with delays
-                isConnected = random.nextBoolean();
-                sleep(isConnected ? 200 : 2000);
+            case "M2": // Poor connectivity with occasional instant responsiveness
+                if (random.nextInt(10) > 7)
+                {
+//                    Simulate working at Sheoak Café (10% chance)
+                    isConnected = true;
+                    sleep(100); // Minimal delay
+                    System.out.println(name + " is in Sheoak Café, fully responsive.");
+                }
+                else
+                {
+                    isConnected = random.nextBoolean(); // Poor connectivity otherwise
+                    sleep(isConnected ? 200 : 2000); // Delay varies based on connectivity
+                }
                 break;
-            case "M3": // Frequently online, occasionally offline
-                isConnected = random.nextInt(10) > 2;
+            case "M3": // Occasionally completely disconnected
+                if (random.nextInt(10) == 0)
+                { // Simulate camping (10% chance)
+                    isConnected = false;
+                    System.out.println(name + " is camping and completely offline.");
+                }
+                else
+                {
+                    isConnected = true;
+                    sleep(300); // Moderate delay when online
+                }
                 break;
-            default: // Randomized delays for other councillors
+            default: // M4-M9: Randomized delays for other councillors
+                isConnected = true;
                 sleep(random.nextInt(500) + 100);
                 break;
         }
-//        when all the councillors have immediate response for the proposals.
+        //        when all the councillors have immediate response for the proposals.
 //        isConnected= true;
     }
+
 
     /**
      * Utility method to pause execution for a specified duration.
