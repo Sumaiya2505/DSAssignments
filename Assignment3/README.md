@@ -119,9 +119,23 @@ OUTPUT:
  
 TESTING:
 
+PRE-REQUISITES:
+
+JUNIT VERSION : 4.13.2
+
+HAMCREST-CORE VERSION:1.3
+
+
+
+COMMAND TO COMPILE TEST FILE:
+
+        javac -cp ".;lib/junit-4.13.2.jar;lib/hamcrest-core-1.3.jar" PaxosTest.java 
+
+COMMAND TO RUN TEST FILE:
+
+        java -cp ".;lib/junit-4.13.2.jar;lib/hamcrest-core-1.3.jar" org.junit.runner.JUnitCore PaxosTest
+
   ![screenshot3.png](images%2Fscreenshot3.png)
 
   ![screenshot4.png](images%2Fscreenshot4.png)
   
-
-
