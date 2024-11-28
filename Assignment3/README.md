@@ -46,6 +46,8 @@ REQUIREMENTS:
 PREREQUISITES:
 
 1.JAVA
-  VERSION:java 22.0.2 2024-07-16
+  VERSION:  java 22.0.2 2024-07-16
 
-![Screenshot (138)(1).png](..%2F..%2FAppData%2FLocal%2FTemp%2Fkappframework-gqZoRo%2FScreenshot%20%28138%29%281%29.png)
+  ![screenshot.png](images%2Fscreenshot.png)
+
+
