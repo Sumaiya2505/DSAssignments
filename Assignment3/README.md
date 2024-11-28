@@ -46,8 +46,82 @@ REQUIREMENTS:
 PREREQUISITES:
 
 1.JAVA
-  VERSION:  java 22.0.2 2024-07-16
-
+  VERSION:  java 22.0.2 2024-07-16 
+  COMMAND: java --version
   ![screenshot.png](images%2Fscreenshot.png)
+
+HOW TO RUN?
+
+1. Clone or download the repository.
+2. Compile the Java files 
+
+       javac Paxos.java
+3. Run the Paxos class:
+        
+       java Paxos
+4. The output will display the progress of the Paxos protocol, including councillors' behaviors and consensus outcomes.
+
+SIMULATION DETAILS
+
+Number of Councillors
+
+Total Councillors: 9
+
+Majority Required: (TOTAL_COUNCILLORS / 2) + 1 = 5
+
+Simulation Steps
+
+Proposers (e.g., M1, M8) initiate proposals.
+
+Each councillor responds based on its state (connected or offline).
+
+Proposers collect promises, move to accept phase, and eventually decide on the value if a majority of councillors agree.
+
+CODE WALKTHROUGH:
+
+Paxos Class
+
+Instantiates councillors with a use of a thread pool.
+
+Continues multiple proposers to mimic several simultaneous propounded.
+
+Closes the thread pool after the execution of the thread pool.
+
+Councillor Class
+
+Acts as a server for accepting request from proposers.
+
+Handles:
+
+Prepare Phase: Sends a promise if there is no other proposition that can be forwarded.
+
+Accept Phase: Takes proposals with the promise as ideas.
+
+Decide Phase: Commits to the proposal.
+
+Imitates delays and disconnections depending on which role it has.
+
+Proposer Class
+
+Initiates the Paxos protocol in three phases:
+
+Sends Prepare requests to all councillors.
+
+Resends Accept requests to councillors who promised.
+
+Posts Decide messages to those councillors who agreed.
+
+OUTPUT:
+
+ ![screenshot1.png](images%2Fscreenshot1.png)
+
+ ![screenshot2.png](images%2Fscreenshot2.png)
+ 
+TESTING:
+
+  ![screenshot3.png](images%2Fscreenshot3.png)
+
+  ![screenshot4.png](images%2Fscreenshot4.png)
+  
 
 
